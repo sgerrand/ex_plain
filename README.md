@@ -15,7 +15,7 @@ Add `ex_plain` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_plain, "~> 0.1.0"}
+    {:ex_plain, "~> 0.2.0"}
   ]
 end
 ```
