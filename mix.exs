@@ -33,6 +33,7 @@ defmodule ExPlain.MixProject do
     [
       {:req, "~> 0.5"},
       {:plug, "~> 1.0", only: :test},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
