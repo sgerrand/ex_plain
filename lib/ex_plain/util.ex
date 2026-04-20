@@ -21,6 +21,9 @@ defmodule ExPlain.Util do
   def put_if_set(map, key, value), do: Map.put(map, key, value)
 
   @doc false
+  def wrap_input(input), do: %{input: camelize_keys(input)}
+
+  @doc false
   def camelize_keys(map) when is_map(map) do
     Map.new(map, fn {k, v} -> {to_camel(k), camelize_keys(v)} end)
   end

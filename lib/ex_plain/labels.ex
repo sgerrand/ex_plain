@@ -5,7 +5,12 @@ defmodule ExPlain.Labels do
   alias ExPlain.Labels.LabelType
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, put_if_set: 3]
+    only: [
+      check_mutation_error: 1,
+      build_pagination_vars: 1,
+      wrap_input: 1,
+      put_if_set: 3
+    ]
 
   @doc """
   Returns a paginated list of label types.
@@ -52,7 +57,7 @@ defmodule ExPlain.Labels do
   """
   @spec create(Client.t(), map()) :: {:ok, LabelType.t()} | {:error, Error.t()}
   def create(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.create_label_type(), variables),
          :ok <- check_mutation_error(data["createLabelType"]["error"]) do

@@ -4,7 +4,8 @@ defmodule ExPlain.Companies do
   alias ExPlain.{Client, Error, Operations, PageInfo}
   alias ExPlain.Companies.Company
 
-  import ExPlain.Util, only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1]
+  import ExPlain.Util,
+    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
 
   @doc """
   Returns a paginated list of companies.
@@ -58,7 +59,7 @@ defmodule ExPlain.Companies do
   """
   @spec upsert(Client.t(), map()) :: {:ok, Company.t()} | {:error, Error.t()}
   def upsert(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.upsert_company(), variables),
          :ok <- check_mutation_error(data["upsertCompany"]["error"]) do
@@ -73,7 +74,7 @@ defmodule ExPlain.Companies do
   """
   @spec update_tier(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def update_tier(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.update_company_tier(), variables),
          :ok <- check_mutation_error(data["updateCompanyTier"]["error"]) do

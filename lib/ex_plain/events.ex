@@ -4,7 +4,7 @@ defmodule ExPlain.Events do
   alias ExPlain.{Client, Error, Operations}
   alias ExPlain.Events.{CustomerEvent, ThreadEvent}
 
-  import ExPlain.Util, only: [check_mutation_error: 1, camelize_keys: 1]
+  import ExPlain.Util, only: [check_mutation_error: 1, wrap_input: 1]
 
   @doc """
   Creates a custom event on a customer's timeline.
@@ -21,7 +21,7 @@ defmodule ExPlain.Events do
   """
   @spec create_customer_event(Client.t(), map()) :: {:ok, CustomerEvent.t()} | {:error, Error.t()}
   def create_customer_event(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.create_customer_event(), variables),
          :ok <- check_mutation_error(data["createCustomerEvent"]["error"]) do
@@ -44,7 +44,7 @@ defmodule ExPlain.Events do
   """
   @spec create_thread_event(Client.t(), map()) :: {:ok, ThreadEvent.t()} | {:error, Error.t()}
   def create_thread_event(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.create_thread_event(), variables),
          :ok <- check_mutation_error(data["createThreadEvent"]["error"]) do

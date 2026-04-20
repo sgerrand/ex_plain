@@ -5,7 +5,12 @@ defmodule ExPlain.Customers do
   alias ExPlain.Customers.Customer
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, put_if_set: 3]
+    only: [
+      check_mutation_error: 1,
+      build_pagination_vars: 1,
+      wrap_input: 1,
+      put_if_set: 3
+    ]
 
   @doc """
   Returns a paginated list of customers.
@@ -100,7 +105,7 @@ defmodule ExPlain.Customers do
   @spec upsert(Client.t(), map()) ::
           {:ok, %{result: :created | :updated, customer: Customer.t()}} | {:error, Error.t()}
   def upsert(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.upsert_customer(), variables),
          :ok <- check_mutation_error(data["upsertCustomer"]["error"]) do
@@ -138,7 +143,7 @@ defmodule ExPlain.Customers do
   """
   @spec update_company(Client.t(), map()) :: {:ok, Customer.t()} | {:error, Error.t()}
   def update_company(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.update_customer_company(), variables),
          :ok <- check_mutation_error(data["updateCustomerCompany"]["error"]) do
@@ -158,7 +163,7 @@ defmodule ExPlain.Customers do
   """
   @spec add_to_customer_groups(Client.t(), map()) :: {:ok, list()} | {:error, Error.t()}
   def add_to_customer_groups(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <-
            Client.execute(client, Operations.add_customer_to_customer_groups(), variables),
@@ -180,7 +185,7 @@ defmodule ExPlain.Customers do
   """
   @spec remove_from_customer_groups(Client.t(), map()) :: {:ok, :removed} | {:error, Error.t()}
   def remove_from_customer_groups(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <-
            Client.execute(client, Operations.remove_customer_from_customer_groups(), variables),
