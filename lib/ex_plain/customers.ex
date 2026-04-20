@@ -193,5 +193,7 @@ defmodule ExPlain.Customers do
 
   defp decode_upsert_result("CREATED"), do: :created
   defp decode_upsert_result("UPDATED"), do: :updated
-  defp decode_upsert_result(other), do: other
+
+  defp decode_upsert_result(other),
+    do: raise(ArgumentError, "unexpected upsert result: #{inspect(other)}")
 end

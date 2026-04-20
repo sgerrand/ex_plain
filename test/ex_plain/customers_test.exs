@@ -153,7 +153,7 @@ defmodule ExPlain.CustomersTest do
   end
 
   describe "upsert/2 — unknown result" do
-    test "passes through unrecognised result values" do
+    test "raises on unrecognised result values" do
       Req.Test.stub(__MODULE__, fn conn ->
         Req.Test.json(conn, %{
           "data" => %{
@@ -168,12 +168,13 @@ defmodule ExPlain.CustomersTest do
 
       client = stub_client(__MODULE__)
 
-      assert {:ok, %{result: "NOOP"}} =
-               ExPlain.Customers.upsert(client, %{
-                 identifier: %{email_address: %{email: "alice@example.com"}},
-                 on_create: %{email: %{email: "alice@example.com"}, full_name: "Alice"},
-                 on_update: %{}
-               })
+      assert_raise ArgumentError, ~r/unexpected upsert result/, fn ->
+        ExPlain.Customers.upsert(client, %{
+          identifier: %{email_address: %{email: "alice@example.com"}},
+          on_create: %{email: %{email: "alice@example.com"}, full_name: "Alice"},
+          on_update: %{}
+        })
+      end
     end
   end
 
