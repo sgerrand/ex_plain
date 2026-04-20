@@ -78,6 +78,27 @@ defmodule ExPlain.WebhooksTest do
     end
   end
 
+  describe "create/2 — error" do
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "createWebhookTarget" => %{
+              "webhookTarget" => nil,
+              "error" => mutation_error_fixture()
+            }
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
+               ExPlain.Webhooks.create(stub_client(__MODULE__), %{
+                 url: "https://example.com/webhook",
+                 event_subscriptions: [%{event_type: "thread.thread_created"}]
+               })
+    end
+  end
+
   describe "delete/2" do
     test "returns :deleted on success" do
       Req.Test.stub(__MODULE__, fn conn ->
@@ -91,6 +112,10 @@ defmodule ExPlain.WebhooksTest do
   end
 
   # ---------------------------------------------------------------------------
+
+  defp mutation_error_fixture do
+    %{"message" => "Invalid.", "type" => "VALIDATION", "code" => "validation", "fields" => []}
+  end
 
   defp webhook_fixture do
     %{
