@@ -20,5 +20,11 @@ defmodule ExPlain.DateTimeTest do
       assert %DateTime{iso8601: "2024-01-01T00:00:00Z", unix_timestamp: nil} =
                DateTime.from_map(%{"iso8601" => "2024-01-01T00:00:00Z"})
     end
+
+    test "raises on a map missing iso8601" do
+      assert_raise ArgumentError, ~r/missing iso8601/, fn ->
+        DateTime.from_map(%{"unixTimestamp" => "1704067200"})
+      end
+    end
   end
 end

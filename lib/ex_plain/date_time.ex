@@ -22,4 +22,8 @@ defmodule ExPlain.DateTime do
   def from_map(%{"iso8601" => iso}) do
     %__MODULE__{iso8601: iso}
   end
+
+  def from_map(map) when is_map(map) do
+    raise ArgumentError, "unexpected datetime map (missing iso8601): #{inspect(map)}"
+  end
 end
