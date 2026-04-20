@@ -93,61 +93,58 @@ defmodule ExPlain.Threads.Thread do
 
   defp decode_status_detail(nil), do: nil
 
-  defp decode_status_detail(%{"__typename" => typename} = d) do
-    changed_at = DateTime.from_map(d["statusChangedAt"])
-    created_at = DateTime.from_map(d["createdAt"])
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailCreated"} = d),
+    do: %{type: :created, created_at: DateTime.from_map(d["createdAt"])}
 
-    case typename do
-      "ThreadStatusDetailCreated" ->
-        %{type: :created, created_at: created_at}
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailNewReply"} = d),
+    do: %{type: :new_reply, status_changed_at: DateTime.from_map(d["statusChangedAt"])}
 
-      "ThreadStatusDetailNewReply" ->
-        %{type: :new_reply, status_changed_at: changed_at}
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailInProgress"} = d),
+    do: %{type: :in_progress, status_changed_at: DateTime.from_map(d["statusChangedAt"])}
 
-      "ThreadStatusDetailInProgress" ->
-        %{type: :in_progress, status_changed_at: changed_at}
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailWaitingForCustomer"} = d),
+    do: %{type: :waiting_for_customer, status_changed_at: DateTime.from_map(d["statusChangedAt"])}
 
-      "ThreadStatusDetailThreadDiscussionResolved" ->
-        %{
-          type: :thread_discussion_resolved,
-          thread_discussion_id: d["threadDiscussionId"],
-          status_changed_at: changed_at
-        }
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailDoneManuallySet"} = d),
+    do: %{type: :done_manually_set, status_changed_at: DateTime.from_map(d["statusChangedAt"])}
 
-      "ThreadStatusDetailThreadLinkUpdated" ->
-        %{
-          type: :thread_link_updated,
-          linear_issue_id: d["linearIssueId"],
-          status_changed_at: changed_at
-        }
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailIgnored"} = d),
+    do: %{type: :ignored, status_changed_at: DateTime.from_map(d["statusChangedAt"])}
 
-      "ThreadStatusDetailWaitingForCustomer" ->
-        %{type: :waiting_for_customer, status_changed_at: changed_at}
-
-      "ThreadStatusDetailWaitingForDuration" ->
-        %{
-          type: :waiting_for_duration,
-          status_changed_at: changed_at,
-          waiting_until: DateTime.from_map(d["waitingUntil"])
-        }
-
-      "ThreadStatusDetailDoneManuallySet" ->
-        %{type: :done_manually_set, status_changed_at: changed_at}
-
-      "ThreadStatusDetailDoneAutomaticallySet" ->
-        %{
-          type: :done_automatically_set,
-          after_seconds: d["afterSeconds"],
-          status_changed_at: changed_at
-        }
-
-      "ThreadStatusDetailIgnored" ->
-        %{type: :ignored, status_changed_at: changed_at}
-
-      _ ->
-        %{type: :unknown, typename: typename}
-    end
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailThreadDiscussionResolved"} = d) do
+    %{
+      type: :thread_discussion_resolved,
+      thread_discussion_id: d["threadDiscussionId"],
+      status_changed_at: DateTime.from_map(d["statusChangedAt"])
+    }
   end
+
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailThreadLinkUpdated"} = d) do
+    %{
+      type: :thread_link_updated,
+      linear_issue_id: d["linearIssueId"],
+      status_changed_at: DateTime.from_map(d["statusChangedAt"])
+    }
+  end
+
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailWaitingForDuration"} = d) do
+    %{
+      type: :waiting_for_duration,
+      status_changed_at: DateTime.from_map(d["statusChangedAt"]),
+      waiting_until: DateTime.from_map(d["waitingUntil"])
+    }
+  end
+
+  defp decode_status_detail(%{"__typename" => "ThreadStatusDetailDoneAutomaticallySet"} = d) do
+    %{
+      type: :done_automatically_set,
+      after_seconds: d["afterSeconds"],
+      status_changed_at: DateTime.from_map(d["statusChangedAt"])
+    }
+  end
+
+  defp decode_status_detail(%{"__typename" => typename}),
+    do: %{type: :unknown, typename: typename}
 
   defp decode_assignee(nil), do: nil
 
