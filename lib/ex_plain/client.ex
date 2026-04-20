@@ -1,5 +1,10 @@
 defmodule ExPlain.Client do
-  @moduledoc false
+  @moduledoc """
+  Holds the configured HTTP client used to communicate with the Plain API.
+
+  Create one with `ExPlain.new/1` and pass it as the first argument to every
+  domain function.
+  """
 
   @enforce_keys [:req]
   defstruct [:req]
