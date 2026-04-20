@@ -49,11 +49,11 @@ defmodule ExPlain.Client do
       {:ok, %{status: 500}} ->
         {:error, ExPlain.Error.new(:internal_server_error, "Internal server error.")}
 
+      {:ok, %{status: 200, body: %{"errors" => [%{"message" => message} | _]}}} ->
+        {:error, ExPlain.Error.new(:graphql_error, message)}
+
       {:ok, %{status: 200, body: %{"data" => data}}} ->
         {:ok, data}
-
-      {:ok, %{body: %{"errors" => [%{"message" => message} | _]}}} ->
-        {:error, ExPlain.Error.new(:graphql_error, message)}
 
       {:error, exception} ->
         {:error, ExPlain.Error.new(:unknown, Exception.message(exception))}
