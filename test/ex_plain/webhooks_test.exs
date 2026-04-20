@@ -18,7 +18,7 @@ defmodule ExPlain.WebhooksTest do
         })
       end)
 
-      assert {:ok, %{nodes: [%{"id" => "wh_01"}]}} =
+      assert {:ok, %{nodes: [%ExPlain.Webhooks.WebhookTarget{id: "wh_01"}]}} =
                ExPlain.Webhooks.list(stub_client(__MODULE__))
     end
   end
@@ -29,7 +29,7 @@ defmodule ExPlain.WebhooksTest do
         Req.Test.json(conn, %{"data" => %{"webhookTarget" => webhook_fixture()}})
       end)
 
-      assert {:ok, %{"id" => "wh_01"}} =
+      assert {:ok, %ExPlain.Webhooks.WebhookTarget{id: "wh_01"}} =
                ExPlain.Webhooks.get_by_id(stub_client(__MODULE__), "wh_01")
     end
 
@@ -52,7 +52,7 @@ defmodule ExPlain.WebhooksTest do
         })
       end)
 
-      assert {:ok, %{"id" => "wh_01"}} =
+      assert {:ok, %ExPlain.Webhooks.WebhookTarget{id: "wh_01"}} =
                ExPlain.Webhooks.create(stub_client(__MODULE__), %{
                  url: "https://example.com/webhook",
                  event_subscriptions: [%{event_type: "thread.thread_created"}]
@@ -70,7 +70,7 @@ defmodule ExPlain.WebhooksTest do
         })
       end)
 
-      assert {:ok, %{"id" => "wh_01"}} =
+      assert {:ok, %ExPlain.Webhooks.WebhookTarget{id: "wh_01"}} =
                ExPlain.Webhooks.update(stub_client(__MODULE__), %{
                  webhook_target_id: "wh_01",
                  url: "https://example.com/webhook-v2"
@@ -93,7 +93,17 @@ defmodule ExPlain.WebhooksTest do
   # ---------------------------------------------------------------------------
 
   defp webhook_fixture do
-    %{"id" => "wh_01", "url" => "https://example.com/webhook", "isEnabled" => true}
+    %{
+      "id" => "wh_01",
+      "url" => "https://example.com/webhook",
+      "isEnabled" => true,
+      "description" => nil,
+      "eventSubscriptions" => [],
+      "createdAt" => %{"iso8601" => "2024-01-01T00:00:00Z", "unixTimestamp" => "1704067200"},
+      "createdBy" => nil,
+      "updatedAt" => %{"iso8601" => "2024-01-01T00:00:00Z", "unixTimestamp" => "1704067200"},
+      "updatedBy" => nil
+    }
   end
 
   defp page_info_fixture do

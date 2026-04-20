@@ -18,7 +18,7 @@ defmodule ExPlain.CustomerGroupsTest do
         })
       end)
 
-      assert {:ok, %{nodes: [%{"id" => "cg_01"}]}} =
+      assert {:ok, %{nodes: [%ExPlain.CustomerGroups.CustomerGroup{id: "cg_01"}]}} =
                ExPlain.CustomerGroups.list(stub_client(__MODULE__))
     end
   end
@@ -29,7 +29,7 @@ defmodule ExPlain.CustomerGroupsTest do
         Req.Test.json(conn, %{"data" => %{"customerGroup" => group_fixture()}})
       end)
 
-      assert {:ok, %{"id" => "cg_01"}} =
+      assert {:ok, %ExPlain.CustomerGroups.CustomerGroup{id: "cg_01"}} =
                ExPlain.CustomerGroups.get_by_id(stub_client(__MODULE__), "cg_01")
     end
 
