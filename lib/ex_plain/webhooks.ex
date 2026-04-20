@@ -2,12 +2,13 @@ defmodule ExPlain.Webhooks do
   @moduledoc "Operations for managing webhook targets in Plain."
 
   alias ExPlain.{Client, Error, Operations, PageInfo}
+  alias ExPlain.Webhooks.WebhookTarget
 
   import ExPlain.Util, only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1]
 
   @doc "Returns a paginated list of webhook targets."
   @spec list(Client.t(), keyword()) ::
-          {:ok, %{nodes: [map()], page_info: PageInfo.t()}} | {:error, Error.t()}
+          {:ok, %{nodes: [WebhookTarget.t()], page_info: PageInfo.t()}} | {:error, Error.t()}
   def list(client, opts \\ []) do
     variables = build_pagination_vars(opts)
 
@@ -16,7 +17,7 @@ defmodule ExPlain.Webhooks do
 
       {:ok,
        %{
-         nodes: Enum.map(conn["edges"], fn e -> e["node"] end),
+         nodes: Enum.map(conn["edges"], fn e -> WebhookTarget.from_map(e["node"]) end),
          page_info: PageInfo.from_map(conn["pageInfo"])
        }}
     end
@@ -26,13 +27,14 @@ defmodule ExPlain.Webhooks do
   Fetches a webhook target by its Plain ID.
   Returns `{:ok, nil}` if not found.
   """
-  @spec get_by_id(Client.t(), String.t()) :: {:ok, map() | nil} | {:error, Error.t()}
+  @spec get_by_id(Client.t(), String.t()) ::
+          {:ok, WebhookTarget.t() | nil} | {:error, Error.t()}
   def get_by_id(client, webhook_target_id) do
     with {:ok, data} <-
            Client.execute(client, Operations.webhook_target_by_id(), %{
              webhookTargetId: webhook_target_id
            }) do
-      {:ok, data["webhookTarget"]}
+      {:ok, WebhookTarget.from_map(data["webhookTarget"])}
     end
   end
 
@@ -42,24 +44,24 @@ defmodule ExPlain.Webhooks do
   The `input` map must include `:url` and `:event_subscriptions` (list of
   `%{event_type: "..."}` maps). Optional: `:description`, `:is_enabled`.
   """
-  @spec create(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
+  @spec create(Client.t(), map()) :: {:ok, WebhookTarget.t()} | {:error, Error.t()}
   def create(client, input) do
     variables = %{input: camelize_keys(input)}
 
     with {:ok, data} <- Client.execute(client, Operations.create_webhook_target(), variables),
          :ok <- check_mutation_error(data["createWebhookTarget"]["error"]) do
-      {:ok, data["createWebhookTarget"]["webhookTarget"]}
+      {:ok, WebhookTarget.from_map(data["createWebhookTarget"]["webhookTarget"])}
     end
   end
 
   @doc "Updates a webhook target."
-  @spec update(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
+  @spec update(Client.t(), map()) :: {:ok, WebhookTarget.t()} | {:error, Error.t()}
   def update(client, input) do
     variables = %{input: camelize_keys(input)}
 
     with {:ok, data} <- Client.execute(client, Operations.update_webhook_target(), variables),
          :ok <- check_mutation_error(data["updateWebhookTarget"]["error"]) do
-      {:ok, data["updateWebhookTarget"]["webhookTarget"]}
+      {:ok, WebhookTarget.from_map(data["updateWebhookTarget"]["webhookTarget"])}
     end
   end
 
