@@ -129,6 +129,90 @@ defmodule ExPlain.CustomersTest do
       assert {:ok, %{nodes: [%Customer{}], page_info: %ExPlain.PageInfo{}, total_count: 1}} =
                ExPlain.Customers.list(client, first: 10)
     end
+
+    test "uses default opts when called with client only" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "customers" => %{
+              "edges" => [],
+              "pageInfo" => %{
+                "hasNextPage" => false,
+                "hasPreviousPage" => false,
+                "startCursor" => nil,
+                "endCursor" => nil
+              },
+              "totalCount" => 0
+            }
+          }
+        })
+      end)
+
+      assert {:ok, %{nodes: []}} = ExPlain.Customers.list(stub_client(__MODULE__))
+    end
+  end
+
+  describe "upsert/2 — unknown result" do
+    test "passes through unrecognised result values" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "upsertCustomer" => %{
+              "result" => "NOOP",
+              "customer" => customer_fixture(),
+              "error" => nil
+            }
+          }
+        })
+      end)
+
+      client = stub_client(__MODULE__)
+
+      assert {:ok, %{result: "NOOP"}} =
+               ExPlain.Customers.upsert(client, %{
+                 identifier: %{email_address: %{email: "alice@example.com"}},
+                 on_create: %{email: %{email: "alice@example.com"}, full_name: "Alice"},
+                 on_update: %{}
+               })
+    end
+  end
+
+  describe "get_by_external_id/2" do
+    test "returns a customer when found" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{"customerByExternalId" => customer_fixture()}
+        })
+      end)
+
+      client = stub_client(__MODULE__)
+      assert {:ok, %Customer{}} = ExPlain.Customers.get_by_external_id(client, "ext_123")
+    end
+  end
+
+  describe "upsert/2 — updated result" do
+    test "returns updated customer with result :updated" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "upsertCustomer" => %{
+              "result" => "UPDATED",
+              "customer" => customer_fixture(),
+              "error" => nil
+            }
+          }
+        })
+      end)
+
+      client = stub_client(__MODULE__)
+
+      assert {:ok, %{result: :updated}} =
+               ExPlain.Customers.upsert(client, %{
+                 identifier: %{email_address: %{email: "alice@example.com"}},
+                 on_create: %{email: %{email: "alice@example.com"}, full_name: "Alice"},
+                 on_update: %{}
+               })
+    end
   end
 
   describe "delete/2" do
@@ -141,6 +225,70 @@ defmodule ExPlain.CustomersTest do
 
       client = stub_client(__MODULE__)
       assert {:ok, :deleted} = ExPlain.Customers.delete(client, "c_01HX")
+    end
+  end
+
+  describe "update_company/2" do
+    test "returns updated customer" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "updateCustomerCompany" => %{
+              "customer" => customer_with_company_fixture(),
+              "error" => nil
+            }
+          }
+        })
+      end)
+
+      client = stub_client(__MODULE__)
+
+      assert {:ok, %Customer{company: %ExPlain.Companies.Company{}}} =
+               ExPlain.Customers.update_company(client, %{
+                 customer_id: "c_01HX",
+                 company_identifier: %{domain_name: "example.com"}
+               })
+    end
+  end
+
+  describe "add_to_customer_groups/2" do
+    test "returns memberships list" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "addCustomerToCustomerGroups" => %{
+              "customerGroupMemberships" => [%{"id" => "cgm_01"}],
+              "error" => nil
+            }
+          }
+        })
+      end)
+
+      client = stub_client(__MODULE__)
+
+      assert {:ok, [%{"id" => "cgm_01"}]} =
+               ExPlain.Customers.add_to_customer_groups(client, %{
+                 customer_id: "c_01HX",
+                 customer_group_identifiers: [%{customer_group_key: "enterprise"}]
+               })
+    end
+  end
+
+  describe "remove_from_customer_groups/2" do
+    test "returns :removed on success" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{"removeCustomerFromCustomerGroups" => %{"error" => nil}}
+        })
+      end)
+
+      client = stub_client(__MODULE__)
+
+      assert {:ok, :removed} =
+               ExPlain.Customers.remove_from_customer_groups(client, %{
+                 customer_id: "c_01HX",
+                 customer_group_identifiers: [%{customer_group_key: "enterprise"}]
+               })
     end
   end
 
@@ -163,5 +311,19 @@ defmodule ExPlain.CustomersTest do
       "updatedAt" => %{"iso8601" => "2024-01-01T00:00:00Z", "unixTimestamp" => "1704067200"},
       "markedAsSpamAt" => nil
     }
+  end
+
+  defp customer_with_company_fixture do
+    customer_fixture()
+    |> Map.put("company", %{
+      "id" => "co_01",
+      "name" => "Example Corp",
+      "domainName" => "example.com",
+      "createdAt" => %{"iso8601" => "2024-01-01T00:00:00Z", "unixTimestamp" => "1704067200"},
+      "createdBy" => nil,
+      "updatedAt" => %{"iso8601" => "2024-01-01T00:00:00Z", "unixTimestamp" => "1704067200"},
+      "updatedBy" => nil
+    })
+    |> Map.put("email", nil)
   end
 end
