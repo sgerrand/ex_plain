@@ -126,7 +126,15 @@ defmodule ExPlain.Customers do
   @doc """
   Updates the company associated with a customer.
 
-  The `input` map should include `:customer_id` and `:company_identifier`.
+  The `input` map must include `:customer_id` and `:company_identifier`.
+  `:company_identifier` is one of `%{company_id: id}` or `%{domain_name: domain}`.
+
+  ## Example
+
+      ExPlain.Customers.update_company(client, %{
+        customer_id: "c_01HX...",
+        company_identifier: %{domain_name: "example.com"}
+      })
   """
   @spec update_company(Client.t(), map()) :: {:ok, Customer.t()} | {:error, Error.t()}
   def update_company(client, input) do
@@ -162,6 +170,13 @@ defmodule ExPlain.Customers do
 
   @doc """
   Removes a customer from one or more customer groups.
+
+  ## Example
+
+      ExPlain.Customers.remove_from_customer_groups(client, %{
+        customer_id: "c_01HX...",
+        customer_group_identifiers: [%{customer_group_key: "enterprise"}]
+      })
   """
   @spec remove_from_customer_groups(Client.t(), map()) :: {:ok, :removed} | {:error, Error.t()}
   def remove_from_customer_groups(client, input) do
