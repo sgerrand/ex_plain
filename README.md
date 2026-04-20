@@ -6,6 +6,7 @@ An Elixir client for the [Plain GraphQL API](https://www.plain.com/docs/graphql/
 
 Add `ex_plain` to your dependencies in `mix.exs`:
 
+<!-- x-release-please-start-version -->
 ```elixir
 def deps do
   [
@@ -13,6 +14,7 @@ def deps do
   ]
 end
 ```
+<!-- x-release-please-end -->
 
 ## Quick start
 
