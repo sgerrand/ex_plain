@@ -1,5 +1,10 @@
 # ExPlain
 
+[![Test Status](https://github.com/sgerrand/ex_plain/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sgerrand/ex_plain/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/sgerrand/ex_plain/badge.svg?branch=main)](https://coveralls.io/github/sgerrand/ex_plain?branch=main)
+[![Hex Version](https://img.shields.io/hexpm/v/ex_plain.svg)](https://hex.pm/packages/ex_plain)
+[![Hex Docs](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/ex_plain/)
+
 An Elixir client for the [Plain GraphQL API](https://www.plain.com/docs/graphql/introduction).
 
 ## Installation
