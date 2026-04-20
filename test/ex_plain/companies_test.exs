@@ -9,7 +9,7 @@ defmodule ExPlain.CompaniesTest do
 
   describe "Company.from_map/1" do
     test "returns nil for nil" do
-      assert nil == ExPlain.Companies.Company.from_map(nil)
+      assert nil == Company.from_map(nil)
     end
   end
 

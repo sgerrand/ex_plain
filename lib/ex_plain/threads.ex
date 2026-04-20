@@ -2,6 +2,7 @@ defmodule ExPlain.Threads do
   @moduledoc "Operations for managing threads in Plain."
 
   alias ExPlain.{Client, Error, Operations, PageInfo}
+  alias ExPlain.Labels.Label
   alias ExPlain.Threads.Thread
 
   import ExPlain.Util,
@@ -301,7 +302,7 @@ defmodule ExPlain.Threads do
 
     with {:ok, data} <- Client.execute(client, Operations.add_labels(), variables),
          :ok <- check_mutation_error(data["addLabels"]["error"]) do
-      labels = Enum.map(data["addLabels"]["labels"] || [], &ExPlain.Labels.Label.from_map/1)
+      labels = Enum.map(data["addLabels"]["labels"] || [], &Label.from_map/1)
       {:ok, labels}
     end
   end

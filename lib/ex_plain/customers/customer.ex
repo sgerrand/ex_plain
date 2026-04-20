@@ -2,6 +2,7 @@ defmodule ExPlain.Customers.Customer do
   @moduledoc "A Plain customer."
 
   alias ExPlain.{Actor, DateTime}
+  alias ExPlain.Companies.Company
 
   @enforce_keys [:id, :full_name, :email, :created_at, :updated_at]
   defstruct [
@@ -61,5 +62,5 @@ defmodule ExPlain.Customers.Customer do
   end
 
   defp decode_company(nil), do: nil
-  defp decode_company(c), do: ExPlain.Companies.Company.from_map(c)
+  defp decode_company(c), do: Company.from_map(c)
 end

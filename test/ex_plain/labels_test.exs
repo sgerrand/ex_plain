@@ -1,7 +1,7 @@
 defmodule ExPlain.LabelsTest do
   use ExUnit.Case, async: true
 
-  alias ExPlain.Labels.LabelType
+  alias ExPlain.Labels.{Label, LabelType}
 
   defp stub_client(stub_name) do
     ExPlain.new(api_key: "test_key", plug: {Req.Test, stub_name})
@@ -9,7 +9,7 @@ defmodule ExPlain.LabelsTest do
 
   describe "Label.from_map/1" do
     test "returns nil for nil" do
-      assert nil == ExPlain.Labels.Label.from_map(nil)
+      assert nil == Label.from_map(nil)
     end
   end
 
