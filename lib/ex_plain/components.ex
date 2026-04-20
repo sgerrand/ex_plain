@@ -69,11 +69,14 @@ defmodule ExPlain.Components do
   """
   @spec divider(keyword()) :: component()
   def divider(opts \\ []) do
-    %{
-      componentDivider: %{
-        dividerSpacingSize: opts[:spacing_size] && String.upcase(to_string(opts[:spacing_size]))
-      }
-    }
+    input =
+      %{}
+      |> maybe_put(
+        :dividerSpacingSize,
+        opts[:spacing_size] && String.upcase(to_string(opts[:spacing_size]))
+      )
+
+    %{componentDivider: input}
   end
 
   @doc "A vertical spacer."
