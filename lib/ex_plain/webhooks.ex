@@ -5,7 +5,7 @@ defmodule ExPlain.Webhooks do
   alias ExPlain.Webhooks.WebhookTarget
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
+    only: [check_mutation_error: 1, build_pagination_vars: 1, wrap_input: 1]
 
   @doc "Returns a paginated list of webhook targets."
   @spec list(Client.t(), keyword()) ::

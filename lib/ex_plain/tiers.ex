@@ -5,7 +5,7 @@ defmodule ExPlain.Tiers do
   alias ExPlain.Tiers.Tier
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
+    only: [check_mutation_error: 1, build_pagination_vars: 1, wrap_input: 1]
 
   @doc "Returns a paginated list of tiers."
   @spec list(Client.t(), keyword()) ::

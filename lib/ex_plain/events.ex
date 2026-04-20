@@ -4,7 +4,7 @@ defmodule ExPlain.Events do
   alias ExPlain.{Client, Error, Operations}
   alias ExPlain.Events.{CustomerEvent, ThreadEvent}
 
-  import ExPlain.Util, only: [check_mutation_error: 1, camelize_keys: 1, wrap_input: 1]
+  import ExPlain.Util, only: [check_mutation_error: 1, wrap_input: 1]
 
   @doc """
   Creates a custom event on a customer's timeline.

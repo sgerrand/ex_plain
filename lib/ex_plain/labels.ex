@@ -8,7 +8,6 @@ defmodule ExPlain.Labels do
     only: [
       check_mutation_error: 1,
       build_pagination_vars: 1,
-      camelize_keys: 1,
       wrap_input: 1,
       put_if_set: 3
     ]
