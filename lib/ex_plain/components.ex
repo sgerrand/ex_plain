@@ -26,7 +26,14 @@ defmodule ExPlain.Components do
     %{componentText: %{text: markdown_text}}
   end
 
-  @doc "A plain (non-markdown) text block."
+  @doc """
+  A plain (non-markdown) text block.
+
+  ## Options
+
+    * `:size` - `:xs`, `:s`, `:m` (default), or `:l`
+    * `:color` - `:normal` (default), `:muted`, `:success`, `:warning`, or `:error`
+  """
   @spec plain_text(String.t(), keyword()) :: component()
   def plain_text(text, opts \\ []) do
     input =
@@ -37,7 +44,13 @@ defmodule ExPlain.Components do
     %{componentPlainText: input}
   end
 
-  @doc "A badge/pill label."
+  @doc """
+  A badge/pill label.
+
+  ## Options
+
+    * `:color` - `:green`, `:yellow`, `:red`, `:blue`, or `:grey`
+  """
   @spec badge(String.t(), keyword()) :: component()
   def badge(label, opts \\ []) do
     input =
@@ -47,7 +60,13 @@ defmodule ExPlain.Components do
     %{componentBadge: input}
   end
 
-  @doc "A horizontal divider."
+  @doc """
+  A horizontal divider.
+
+  ## Options
+
+    * `:spacing_size` - `:xs`, `:s`, `:m` (default), `:l`, or `:xl`
+  """
   @spec divider(keyword()) :: component()
   def divider(opts \\ []) do
     %{
