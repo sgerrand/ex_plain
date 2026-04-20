@@ -76,6 +76,22 @@ defmodule ExPlain.TenantsTest do
                  name: "Acme"
                })
     end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "upsertTenant" => %{"tenant" => nil, "error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
+               ExPlain.Tenants.upsert(stub_client(__MODULE__), %{
+                 external_id: "ext_01",
+                 name: "Acme"
+               })
+    end
   end
 
   describe "add_customer/2" do
@@ -87,6 +103,22 @@ defmodule ExPlain.TenantsTest do
       end)
 
       assert {:ok, :added} =
+               ExPlain.Tenants.add_customer(stub_client(__MODULE__), %{
+                 customer_identifier: %{customer_id: "c_01"},
+                 tenant_identifiers: [%{external_id: "ext_01"}]
+               })
+    end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "addCustomerToTenants" => %{"error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
                ExPlain.Tenants.add_customer(stub_client(__MODULE__), %{
                  customer_identifier: %{customer_id: "c_01"},
                  tenant_identifiers: [%{external_id: "ext_01"}]
@@ -108,6 +140,22 @@ defmodule ExPlain.TenantsTest do
                  tenant_identifiers: [%{external_id: "ext_01"}]
                })
     end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "removeCustomerFromTenants" => %{"error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
+               ExPlain.Tenants.remove_customer(stub_client(__MODULE__), %{
+                 customer_identifier: %{customer_id: "c_01"},
+                 tenant_identifiers: [%{external_id: "ext_01"}]
+               })
+    end
   end
 
   describe "set_customer_tenants/2" do
@@ -119,6 +167,22 @@ defmodule ExPlain.TenantsTest do
       end)
 
       assert {:ok, :set} =
+               ExPlain.Tenants.set_customer_tenants(stub_client(__MODULE__), %{
+                 customer_identifier: %{customer_id: "c_01"},
+                 tenant_identifiers: [%{external_id: "ext_01"}]
+               })
+    end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "setCustomerTenants" => %{"error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
                ExPlain.Tenants.set_customer_tenants(stub_client(__MODULE__), %{
                  customer_identifier: %{customer_id: "c_01"},
                  tenant_identifiers: [%{external_id: "ext_01"}]
@@ -148,6 +212,10 @@ defmodule ExPlain.TenantsTest do
   end
 
   # ---------------------------------------------------------------------------
+
+  defp mutation_error_fixture do
+    %{"message" => "Invalid.", "type" => "VALIDATION", "code" => "validation", "fields" => []}
+  end
 
   defp tenant_fixture do
     %{

@@ -62,6 +62,22 @@ defmodule ExPlain.TiersTest do
                  member_identifiers: [%{tenant_identifier: %{external_id: "ext_01"}}]
                })
     end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "addMembersToTier" => %{"memberships" => nil, "error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
+               ExPlain.Tiers.add_members(stub_client(__MODULE__), %{
+                 tier_identifier: %{tier_id: "tier_01"},
+                 member_identifiers: [%{tenant_identifier: %{external_id: "ext_01"}}]
+               })
+    end
   end
 
   describe "remove_members/2" do
@@ -78,9 +94,29 @@ defmodule ExPlain.TiersTest do
                  member_identifiers: [%{tenant_identifier: %{external_id: "ext_01"}}]
                })
     end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "removeMembersFromTier" => %{"error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
+               ExPlain.Tiers.remove_members(stub_client(__MODULE__), %{
+                 tier_identifier: %{tier_id: "tier_01"},
+                 member_identifiers: [%{tenant_identifier: %{external_id: "ext_01"}}]
+               })
+    end
   end
 
   # ---------------------------------------------------------------------------
+
+  defp mutation_error_fixture do
+    %{"message" => "Invalid.", "type" => "VALIDATION", "code" => "validation", "fields" => []}
+  end
 
   defp tier_fixture do
     %{

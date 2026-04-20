@@ -62,6 +62,19 @@ defmodule ExPlain.LabelsTest do
       assert {:ok, %LabelType{}} =
                ExPlain.Labels.create(stub_client(__MODULE__), %{name: "Bug"})
     end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "createLabelType" => %{"labelType" => nil, "error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
+               ExPlain.Labels.create(stub_client(__MODULE__), %{name: "Bug"})
+    end
   end
 
   describe "archive/2" do
@@ -78,6 +91,19 @@ defmodule ExPlain.LabelsTest do
       end)
 
       assert {:ok, %LabelType{is_archived: true}} =
+               ExPlain.Labels.archive(stub_client(__MODULE__), "lbt_01")
+    end
+
+    test "returns error on mutation failure" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{
+          "data" => %{
+            "archiveLabelType" => %{"labelType" => nil, "error" => mutation_error_fixture()}
+          }
+        })
+      end)
+
+      assert {:error, %ExPlain.Error{type: :mutation_error}} =
                ExPlain.Labels.archive(stub_client(__MODULE__), "lbt_01")
     end
   end
@@ -97,6 +123,10 @@ defmodule ExPlain.LabelsTest do
       "updatedAt" => %{"iso8601" => "2024-01-01T00:00:00Z", "unixTimestamp" => "1704067200"},
       "updatedBy" => nil
     }
+  end
+
+  defp mutation_error_fixture do
+    %{"message" => "Invalid.", "type" => "VALIDATION", "code" => "validation", "fields" => []}
   end
 
   defp page_info_fixture do
