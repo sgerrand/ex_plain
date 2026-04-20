@@ -16,6 +16,7 @@ defmodule ExPlain.Client do
     req =
       [
         url: base_url,
+        receive_timeout: 30_000,
         headers: %{
           "content-type" => "application/json",
           "authorization" => "Bearer #{api_key}"

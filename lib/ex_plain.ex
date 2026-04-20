@@ -57,8 +57,8 @@ defmodule ExPlain do
     * `:api_key` - required. Your Plain API key (e.g. `"plainApiKey_..."`).
     * `:base_url` - optional. API endpoint. Defaults to `#{@default_base_url}`.
 
-  Any additional options are forwarded to `Req.new/1` (e.g. `plug:` for testing,
-  `receive_timeout:` for request timeouts).
+  Any additional options are forwarded to `Req.new/1` (e.g. `plug:` for testing).
+  The default `receive_timeout` is 30 000 ms and can be overridden here.
   """
   @spec new(keyword()) :: Client.t()
   def new(opts) do
