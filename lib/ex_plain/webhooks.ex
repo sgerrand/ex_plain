@@ -4,7 +4,8 @@ defmodule ExPlain.Webhooks do
   alias ExPlain.{Client, Error, Operations, PageInfo}
   alias ExPlain.Webhooks.WebhookTarget
 
-  import ExPlain.Util, only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1]
+  import ExPlain.Util,
+    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
 
   @doc "Returns a paginated list of webhook targets."
   @spec list(Client.t(), keyword()) ::
@@ -46,7 +47,7 @@ defmodule ExPlain.Webhooks do
   """
   @spec create(Client.t(), map()) :: {:ok, WebhookTarget.t()} | {:error, Error.t()}
   def create(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.create_webhook_target(), variables),
          :ok <- check_mutation_error(data["createWebhookTarget"]["error"]) do
@@ -57,7 +58,7 @@ defmodule ExPlain.Webhooks do
   @doc "Updates a webhook target."
   @spec update(Client.t(), map()) :: {:ok, WebhookTarget.t()} | {:error, Error.t()}
   def update(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.update_webhook_target(), variables),
          :ok <- check_mutation_error(data["updateWebhookTarget"]["error"]) do

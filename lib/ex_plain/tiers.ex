@@ -4,7 +4,8 @@ defmodule ExPlain.Tiers do
   alias ExPlain.{Client, Error, Operations, PageInfo}
   alias ExPlain.Tiers.Tier
 
-  import ExPlain.Util, only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1]
+  import ExPlain.Util,
+    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
 
   @doc "Returns a paginated list of tiers."
   @spec list(Client.t(), keyword()) ::
@@ -41,7 +42,7 @@ defmodule ExPlain.Tiers do
   """
   @spec add_members(Client.t(), map()) :: {:ok, list()} | {:error, Error.t()}
   def add_members(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.add_members_to_tier(), variables),
          :ok <- check_mutation_error(data["addMembersToTier"]["error"]) do
@@ -56,7 +57,7 @@ defmodule ExPlain.Tiers do
   """
   @spec remove_members(Client.t(), map()) :: {:ok, :removed} | {:error, Error.t()}
   def remove_members(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.remove_members_from_tier(), variables),
          :ok <- check_mutation_error(data["removeMembersFromTier"]["error"]) do

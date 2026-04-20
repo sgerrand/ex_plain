@@ -6,7 +6,13 @@ defmodule ExPlain.Threads do
   alias ExPlain.Threads.Thread
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, put_if_set: 3]
+    only: [
+      check_mutation_error: 1,
+      build_pagination_vars: 1,
+      camelize_keys: 1,
+      wrap_input: 1,
+      put_if_set: 3
+    ]
 
   @doc """
   Returns a paginated list of threads.
@@ -93,7 +99,7 @@ defmodule ExPlain.Threads do
   """
   @spec create(Client.t(), map()) :: {:ok, Thread.t()} | {:error, Error.t()}
   def create(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.create_thread(), variables),
          :ok <- check_mutation_error(data["createThread"]["error"]) do
@@ -155,7 +161,7 @@ defmodule ExPlain.Threads do
   @doc "Updates the tenant associated with a thread."
   @spec update_tenant(Client.t(), map()) :: {:ok, Thread.t()} | {:error, Error.t()}
   def update_tenant(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.update_thread_tenant(), variables),
          :ok <- check_mutation_error(data["updateThreadTenant"]["error"]) do
@@ -205,7 +211,7 @@ defmodule ExPlain.Threads do
   """
   @spec reply(Client.t(), map()) :: {:ok, :sent} | {:error, Error.t()}
   def reply(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.reply_to_thread(), variables),
          :ok <- check_mutation_error(data["replyToThread"]["error"]) do
@@ -220,7 +226,7 @@ defmodule ExPlain.Threads do
   """
   @spec send_chat(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def send_chat(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.send_chat(), variables),
          :ok <- check_mutation_error(data["sendChat"]["error"]) do
@@ -235,7 +241,7 @@ defmodule ExPlain.Threads do
   """
   @spec send_customer_chat(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def send_customer_chat(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.send_customer_chat(), variables),
          :ok <- check_mutation_error(data["sendCustomerChat"]["error"]) do
@@ -250,7 +256,7 @@ defmodule ExPlain.Threads do
   """
   @spec send_email(Client.t(), map()) :: {:ok, :sent} | {:error, Error.t()}
   def send_email(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.send_new_email(), variables),
          :ok <- check_mutation_error(data["sendNewEmail"]["error"]) do
@@ -265,7 +271,7 @@ defmodule ExPlain.Threads do
   """
   @spec reply_to_email(Client.t(), map()) :: {:ok, :sent} | {:error, Error.t()}
   def reply_to_email(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.reply_to_email(), variables),
          :ok <- check_mutation_error(data["replyToEmail"]["error"]) do
@@ -280,7 +286,7 @@ defmodule ExPlain.Threads do
   """
   @spec create_note(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def create_note(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.create_note(), variables),
          :ok <- check_mutation_error(data["createNote"]["error"]) do
@@ -332,7 +338,7 @@ defmodule ExPlain.Threads do
   """
   @spec upsert_field(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def upsert_field(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.upsert_thread_field(), variables),
          :ok <- check_mutation_error(data["upsertThreadField"]["error"]) do

@@ -4,7 +4,8 @@ defmodule ExPlain.Tenants do
   alias ExPlain.{Client, Error, Operations, PageInfo}
   alias ExPlain.Tenants.Tenant
 
-  import ExPlain.Util, only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1]
+  import ExPlain.Util,
+    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
 
   @doc """
   Returns a paginated list of tenants.
@@ -64,7 +65,7 @@ defmodule ExPlain.Tenants do
   """
   @spec upsert(Client.t(), map()) :: {:ok, Tenant.t()} | {:error, Error.t()}
   def upsert(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.upsert_tenant(), variables),
          :ok <- check_mutation_error(data["upsertTenant"]["error"]) do
@@ -79,7 +80,7 @@ defmodule ExPlain.Tenants do
   """
   @spec add_customer(Client.t(), map()) :: {:ok, :added} | {:error, Error.t()}
   def add_customer(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.add_customer_to_tenants(), variables),
          :ok <- check_mutation_error(data["addCustomerToTenants"]["error"]) do
@@ -94,7 +95,7 @@ defmodule ExPlain.Tenants do
   """
   @spec remove_customer(Client.t(), map()) :: {:ok, :removed} | {:error, Error.t()}
   def remove_customer(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <-
            Client.execute(client, Operations.remove_customer_from_tenants(), variables),
@@ -110,7 +111,7 @@ defmodule ExPlain.Tenants do
   """
   @spec set_customer_tenants(Client.t(), map()) :: {:ok, :set} | {:error, Error.t()}
   def set_customer_tenants(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.set_customer_tenants(), variables),
          :ok <- check_mutation_error(data["setCustomerTenants"]["error"]) do
@@ -125,7 +126,7 @@ defmodule ExPlain.Tenants do
   """
   @spec update_tier(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def update_tier(client, input) do
-    variables = %{input: camelize_keys(input)}
+    variables = wrap_input(input)
 
     with {:ok, data} <- Client.execute(client, Operations.update_tenant_tier(), variables),
          :ok <- check_mutation_error(data["updateTenantTier"]["error"]) do
