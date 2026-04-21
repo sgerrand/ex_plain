@@ -72,7 +72,3 @@ Mutation errors from Plain (`data.mutationName.error`) are checked in each domai
 ### Testing
 
 `Req.Test` is used for network stubbing. Pass `plug: {Req.Test, MyStubName}` when constructing the client. See `test/ex_plain/customers_test.exs` for the pattern.
-
-### TypeScript SDK reference
-
-A local clone of the official TypeScript SDK is at `tmp/team-plain/typescript-sdk/`. The `src/graphql/` directory contains authoritative fragment files (`.gql`) and a generated `types.ts`. Consult these when adding new operations or updating field selections to match the official API surface.
