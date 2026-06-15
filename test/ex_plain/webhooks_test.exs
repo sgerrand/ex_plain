@@ -40,6 +40,17 @@ defmodule ExPlain.WebhooksTest do
 
       assert {:ok, nil} = ExPlain.Webhooks.get_by_id(stub_client(__MODULE__), "wh_unknown")
     end
+
+    test "defaults event_subscriptions to [] when absent" do
+      target = Map.delete(webhook_fixture(), "eventSubscriptions")
+
+      Req.Test.stub(__MODULE__, fn conn ->
+        Req.Test.json(conn, %{"data" => %{"webhookTarget" => target}})
+      end)
+
+      assert {:ok, %ExPlain.Webhooks.WebhookTarget{event_subscriptions: []}} =
+               ExPlain.Webhooks.get_by_id(stub_client(__MODULE__), "wh_01")
+    end
   end
 
   describe "create/2" do
