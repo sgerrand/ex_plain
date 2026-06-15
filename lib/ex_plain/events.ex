@@ -4,7 +4,7 @@ defmodule ExPlain.Events do
   alias ExPlain.{Client, Error, Operations}
   alias ExPlain.Events.{CustomerEvent, ThreadEvent}
 
-  import ExPlain.Util, only: [check_mutation_error: 1, wrap_input: 1]
+  import ExPlain.Util, only: [wrap_input: 1, run_mutation: 5]
 
   @doc """
   Creates a custom event on a customer's timeline.
@@ -21,12 +21,13 @@ defmodule ExPlain.Events do
   """
   @spec create_customer_event(Client.t(), map()) :: {:ok, CustomerEvent.t()} | {:error, Error.t()}
   def create_customer_event(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.create_customer_event(), variables),
-         :ok <- check_mutation_error(data["createCustomerEvent"]["error"]) do
-      {:ok, CustomerEvent.from_map(data["createCustomerEvent"]["customerEvent"])}
-    end
+    run_mutation(
+      client,
+      Operations.create_customer_event(),
+      wrap_input(input),
+      "createCustomerEvent",
+      &CustomerEvent.from_map(&1["customerEvent"])
+    )
   end
 
   @doc """
@@ -44,11 +45,12 @@ defmodule ExPlain.Events do
   """
   @spec create_thread_event(Client.t(), map()) :: {:ok, ThreadEvent.t()} | {:error, Error.t()}
   def create_thread_event(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.create_thread_event(), variables),
-         :ok <- check_mutation_error(data["createThreadEvent"]["error"]) do
-      {:ok, ThreadEvent.from_map(data["createThreadEvent"]["threadEvent"])}
-    end
+    run_mutation(
+      client,
+      Operations.create_thread_event(),
+      wrap_input(input),
+      "createThreadEvent",
+      &ThreadEvent.from_map(&1["threadEvent"])
+    )
   end
 end

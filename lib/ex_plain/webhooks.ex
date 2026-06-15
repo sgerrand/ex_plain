@@ -5,7 +5,13 @@ defmodule ExPlain.Webhooks do
   alias ExPlain.Webhooks.WebhookTarget
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, wrap_input: 1]
+    only: [
+      build_pagination_vars: 1,
+      wrap_input: 1,
+      fetch_one: 5,
+      list_connection: 5,
+      run_mutation: 5
+    ]
 
   @doc "Returns a paginated list of webhook targets."
   @spec list(Client.t(), keyword()) ::
@@ -13,15 +19,13 @@ defmodule ExPlain.Webhooks do
   def list(client, opts \\ []) do
     variables = build_pagination_vars(opts)
 
-    with {:ok, data} <- Client.execute(client, Operations.webhook_targets(), variables) do
-      conn = data["webhookTargets"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> WebhookTarget.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(
+      client,
+      Operations.webhook_targets(),
+      variables,
+      "webhookTargets",
+      &WebhookTarget.from_map/1
+    )
   end
 
   @doc """
@@ -31,12 +35,13 @@ defmodule ExPlain.Webhooks do
   @spec get_by_id(Client.t(), String.t()) ::
           {:ok, WebhookTarget.t() | nil} | {:error, Error.t()}
   def get_by_id(client, webhook_target_id) do
-    with {:ok, data} <-
-           Client.execute(client, Operations.webhook_target_by_id(), %{
-             webhookTargetId: webhook_target_id
-           }) do
-      {:ok, WebhookTarget.from_map(data["webhookTarget"])}
-    end
+    fetch_one(
+      client,
+      Operations.webhook_target_by_id(),
+      %{webhookTargetId: webhook_target_id},
+      "webhookTarget",
+      &WebhookTarget.from_map/1
+    )
   end
 
   @doc """
@@ -47,23 +52,25 @@ defmodule ExPlain.Webhooks do
   """
   @spec create(Client.t(), map()) :: {:ok, WebhookTarget.t()} | {:error, Error.t()}
   def create(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.create_webhook_target(), variables),
-         :ok <- check_mutation_error(data["createWebhookTarget"]["error"]) do
-      {:ok, WebhookTarget.from_map(data["createWebhookTarget"]["webhookTarget"])}
-    end
+    run_mutation(
+      client,
+      Operations.create_webhook_target(),
+      wrap_input(input),
+      "createWebhookTarget",
+      &WebhookTarget.from_map(&1["webhookTarget"])
+    )
   end
 
   @doc "Updates a webhook target."
   @spec update(Client.t(), map()) :: {:ok, WebhookTarget.t()} | {:error, Error.t()}
   def update(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.update_webhook_target(), variables),
-         :ok <- check_mutation_error(data["updateWebhookTarget"]["error"]) do
-      {:ok, WebhookTarget.from_map(data["updateWebhookTarget"]["webhookTarget"])}
-    end
+    run_mutation(
+      client,
+      Operations.update_webhook_target(),
+      wrap_input(input),
+      "updateWebhookTarget",
+      &WebhookTarget.from_map(&1["webhookTarget"])
+    )
   end
 
   @doc "Deletes a webhook target."
@@ -71,9 +78,12 @@ defmodule ExPlain.Webhooks do
   def delete(client, webhook_target_id) do
     variables = %{input: %{webhookTargetId: webhook_target_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.delete_webhook_target(), variables),
-         :ok <- check_mutation_error(data["deleteWebhookTarget"]["error"]) do
-      {:ok, :deleted}
-    end
+    run_mutation(
+      client,
+      Operations.delete_webhook_target(),
+      variables,
+      "deleteWebhookTarget",
+      fn _ -> :deleted end
+    )
   end
 end

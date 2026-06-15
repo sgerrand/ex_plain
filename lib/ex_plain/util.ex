@@ -1,7 +1,7 @@
 defmodule ExPlain.Util do
   @moduledoc false
 
-  alias ExPlain.Error
+  alias ExPlain.{Client, Error, PageInfo}
 
   @doc false
   def check_mutation_error(nil), do: :ok
@@ -31,12 +31,55 @@ defmodule ExPlain.Util do
   def camelize_keys(list) when is_list(list), do: Enum.map(list, &camelize_keys/1)
   def camelize_keys(value), do: value
 
+  @doc """
+  Fetches a single entity. Runs `document` and decodes `data[key]` with `decode`.
+  """
+  def fetch_one(client, document, variables, key, decode) do
+    with {:ok, data} <- Client.execute(client, document, variables) do
+      {:ok, decode.(data[key])}
+    end
+  end
+
+  @doc """
+  Runs a paginated query and decodes `data[key]` as a connection.
+
+  Each edge node is passed to `decode`. Pass `total_count: true` to include the
+  connection's `totalCount` in the result.
+  """
+  def list_connection(client, document, variables, key, decode, opts \\ []) do
+    with {:ok, data} <- Client.execute(client, document, variables) do
+      conn = data[key]
+
+      result = %{
+        nodes: Enum.map(conn["edges"] || [], fn e -> decode.(e["node"]) end),
+        page_info: PageInfo.from_map(conn["pageInfo"])
+      }
+
+      result =
+        if Keyword.get(opts, :total_count, false),
+          do: Map.put(result, :total_count, conn["totalCount"]),
+          else: result
+
+      {:ok, result}
+    end
+  end
+
+  @doc """
+  Runs a mutation, checks `data[key]["error"]`, and on success decodes the
+  payload with `decode` (which receives the `data[key]` map).
+  """
+  def run_mutation(client, document, variables, key, decode) do
+    with {:ok, data} <- Client.execute(client, document, variables),
+         payload = data[key],
+         :ok <- check_mutation_error(payload["error"]) do
+      {:ok, decode.(payload)}
+    end
+  end
+
   defp to_camel(key) when is_atom(key), do: key |> Atom.to_string() |> to_camel()
 
   defp to_camel(key) when is_binary(key) do
-    case String.split(key, "_") do
-      [single] -> single
-      [first | rest] -> first <> Enum.map_join(rest, &String.capitalize/1)
-    end
+    [first | rest] = String.split(key, "_")
+    first <> Enum.map_join(rest, &String.capitalize/1)
   end
 end

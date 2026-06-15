@@ -6,10 +6,12 @@ defmodule ExPlain.Labels do
 
   import ExPlain.Util,
     only: [
-      check_mutation_error: 1,
       build_pagination_vars: 1,
       wrap_input: 1,
-      put_if_set: 3
+      put_if_set: 3,
+      fetch_one: 5,
+      list_connection: 5,
+      run_mutation: 5
     ]
 
   @doc """
@@ -27,15 +29,13 @@ defmodule ExPlain.Labels do
       build_pagination_vars(opts)
       |> put_if_set(:filters, opts[:filters])
 
-    with {:ok, data} <- Client.execute(client, Operations.label_types(), variables) do
-      conn = data["labelTypes"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> LabelType.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(
+      client,
+      Operations.label_types(),
+      variables,
+      "labelTypes",
+      &LabelType.from_map/1
+    )
   end
 
   @doc """
@@ -44,10 +44,13 @@ defmodule ExPlain.Labels do
   """
   @spec get_by_id(Client.t(), String.t()) :: {:ok, LabelType.t() | nil} | {:error, Error.t()}
   def get_by_id(client, label_type_id) do
-    with {:ok, data} <-
-           Client.execute(client, Operations.label_type_by_id(), %{labelTypeId: label_type_id}) do
-      {:ok, LabelType.from_map(data["labelType"])}
-    end
+    fetch_one(
+      client,
+      Operations.label_type_by_id(),
+      %{labelTypeId: label_type_id},
+      "labelType",
+      &LabelType.from_map/1
+    )
   end
 
   @doc """
@@ -57,12 +60,13 @@ defmodule ExPlain.Labels do
   """
   @spec create(Client.t(), map()) :: {:ok, LabelType.t()} | {:error, Error.t()}
   def create(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.create_label_type(), variables),
-         :ok <- check_mutation_error(data["createLabelType"]["error"]) do
-      {:ok, LabelType.from_map(data["createLabelType"]["labelType"])}
-    end
+    run_mutation(
+      client,
+      Operations.create_label_type(),
+      wrap_input(input),
+      "createLabelType",
+      &LabelType.from_map(&1["labelType"])
+    )
   end
 
   @doc "Archives a label type."
@@ -70,9 +74,12 @@ defmodule ExPlain.Labels do
   def archive(client, label_type_id) do
     variables = %{input: %{labelTypeId: label_type_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.archive_label_type(), variables),
-         :ok <- check_mutation_error(data["archiveLabelType"]["error"]) do
-      {:ok, LabelType.from_map(data["archiveLabelType"]["labelType"])}
-    end
+    run_mutation(
+      client,
+      Operations.archive_label_type(),
+      variables,
+      "archiveLabelType",
+      &LabelType.from_map(&1["labelType"])
+    )
   end
 end

@@ -7,10 +7,12 @@ defmodule ExPlain.Threads do
 
   import ExPlain.Util,
     only: [
-      check_mutation_error: 1,
       build_pagination_vars: 1,
       wrap_input: 1,
-      put_if_set: 3
+      put_if_set: 3,
+      fetch_one: 5,
+      list_connection: 5,
+      run_mutation: 5
     ]
 
   @doc """
@@ -30,15 +32,7 @@ defmodule ExPlain.Threads do
       |> put_if_set(:filters, opts[:filters])
       |> put_if_set(:sortBy, opts[:sort_by])
 
-    with {:ok, data} <- Client.execute(client, Operations.threads(), variables) do
-      conn = data["threads"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> Thread.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(client, Operations.threads(), variables, "threads", &Thread.from_map/1)
   end
 
   @doc """
@@ -47,9 +41,13 @@ defmodule ExPlain.Threads do
   """
   @spec get_by_id(Client.t(), String.t()) :: {:ok, Thread.t() | nil} | {:error, Error.t()}
   def get_by_id(client, thread_id) do
-    with {:ok, data} <- Client.execute(client, Operations.thread_by_id(), %{threadId: thread_id}) do
-      {:ok, Thread.from_map(data["thread"])}
-    end
+    fetch_one(
+      client,
+      Operations.thread_by_id(),
+      %{threadId: thread_id},
+      "thread",
+      &Thread.from_map/1
+    )
   end
 
   @doc """
@@ -58,9 +56,7 @@ defmodule ExPlain.Threads do
   """
   @spec get_by_ref(Client.t(), String.t()) :: {:ok, Thread.t() | nil} | {:error, Error.t()}
   def get_by_ref(client, ref) do
-    with {:ok, data} <- Client.execute(client, Operations.thread_by_ref(), %{ref: ref}) do
-      {:ok, Thread.from_map(data["threadByRef"])}
-    end
+    fetch_one(client, Operations.thread_by_ref(), %{ref: ref}, "threadByRef", &Thread.from_map/1)
   end
 
   @doc """
@@ -74,9 +70,13 @@ defmodule ExPlain.Threads do
   def get_by_external_id(client, customer_id, external_id) do
     variables = %{customerId: customer_id, externalId: external_id}
 
-    with {:ok, data} <- Client.execute(client, Operations.thread_by_external_id(), variables) do
-      {:ok, Thread.from_map(data["threadByExternalId"])}
-    end
+    fetch_one(
+      client,
+      Operations.thread_by_external_id(),
+      variables,
+      "threadByExternalId",
+      &Thread.from_map/1
+    )
   end
 
   @doc """
@@ -98,12 +98,13 @@ defmodule ExPlain.Threads do
   """
   @spec create(Client.t(), map()) :: {:ok, Thread.t()} | {:error, Error.t()}
   def create(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.create_thread(), variables),
-         :ok <- check_mutation_error(data["createThread"]["error"]) do
-      {:ok, Thread.from_map(data["createThread"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.create_thread(),
+      wrap_input(input),
+      "createThread",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc """
@@ -124,10 +125,13 @@ defmodule ExPlain.Threads do
 
     variables = %{input: input}
 
-    with {:ok, data} <- Client.execute(client, Operations.assign_thread(), variables),
-         :ok <- check_mutation_error(data["assignThread"]["error"]) do
-      {:ok, Thread.from_map(data["assignThread"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.assign_thread(),
+      variables,
+      "assignThread",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc "Unassigns a thread."
@@ -135,10 +139,13 @@ defmodule ExPlain.Threads do
   def unassign(client, thread_id) do
     variables = %{input: %{threadId: thread_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.unassign_thread(), variables),
-         :ok <- check_mutation_error(data["unassignThread"]["error"]) do
-      {:ok, Thread.from_map(data["unassignThread"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.unassign_thread(),
+      variables,
+      "unassignThread",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc """
@@ -151,21 +158,25 @@ defmodule ExPlain.Threads do
   def change_priority(client, thread_id, priority) do
     variables = %{input: %{threadId: thread_id, priority: priority}}
 
-    with {:ok, data} <- Client.execute(client, Operations.change_thread_priority(), variables),
-         :ok <- check_mutation_error(data["changeThreadPriority"]["error"]) do
-      {:ok, Thread.from_map(data["changeThreadPriority"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.change_thread_priority(),
+      variables,
+      "changeThreadPriority",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc "Updates the tenant associated with a thread."
   @spec update_tenant(Client.t(), map()) :: {:ok, Thread.t()} | {:error, Error.t()}
   def update_tenant(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.update_thread_tenant(), variables),
-         :ok <- check_mutation_error(data["updateThreadTenant"]["error"]) do
-      {:ok, Thread.from_map(data["updateThreadTenant"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.update_thread_tenant(),
+      wrap_input(input),
+      "updateThreadTenant",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc "Marks a thread as done."
@@ -173,10 +184,13 @@ defmodule ExPlain.Threads do
   def mark_as_done(client, thread_id) do
     variables = %{input: %{threadId: thread_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.mark_thread_as_done(), variables),
-         :ok <- check_mutation_error(data["markThreadAsDone"]["error"]) do
-      {:ok, Thread.from_map(data["markThreadAsDone"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.mark_thread_as_done(),
+      variables,
+      "markThreadAsDone",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc """
@@ -186,10 +200,13 @@ defmodule ExPlain.Threads do
   def snooze(client, thread_id, snooze_until_seconds) do
     variables = %{input: %{threadId: thread_id, snoozeUntilSeconds: snooze_until_seconds}}
 
-    with {:ok, data} <- Client.execute(client, Operations.snooze_thread(), variables),
-         :ok <- check_mutation_error(data["snoozeThread"]["error"]) do
-      {:ok, Thread.from_map(data["snoozeThread"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.snooze_thread(),
+      variables,
+      "snoozeThread",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc "Marks a thread as todo (e.g. unsnoozes it)."
@@ -197,10 +214,13 @@ defmodule ExPlain.Threads do
   def mark_as_todo(client, thread_id) do
     variables = %{input: %{threadId: thread_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.mark_thread_as_todo(), variables),
-         :ok <- check_mutation_error(data["markThreadAsTodo"]["error"]) do
-      {:ok, Thread.from_map(data["markThreadAsTodo"]["thread"])}
-    end
+    run_mutation(
+      client,
+      Operations.mark_thread_as_todo(),
+      variables,
+      "markThreadAsTodo",
+      &Thread.from_map(&1["thread"])
+    )
   end
 
   @doc """
@@ -210,12 +230,9 @@ defmodule ExPlain.Threads do
   """
   @spec reply(Client.t(), map()) :: {:ok, :sent} | {:error, Error.t()}
   def reply(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.reply_to_thread(), variables),
-         :ok <- check_mutation_error(data["replyToThread"]["error"]) do
-      {:ok, :sent}
-    end
+    run_mutation(client, Operations.reply_to_thread(), wrap_input(input), "replyToThread", fn _ ->
+      :sent
+    end)
   end
 
   @doc """
@@ -225,12 +242,7 @@ defmodule ExPlain.Threads do
   """
   @spec send_chat(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def send_chat(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.send_chat(), variables),
-         :ok <- check_mutation_error(data["sendChat"]["error"]) do
-      {:ok, data["sendChat"]["chat"]}
-    end
+    run_mutation(client, Operations.send_chat(), wrap_input(input), "sendChat", & &1["chat"])
   end
 
   @doc """
@@ -240,12 +252,13 @@ defmodule ExPlain.Threads do
   """
   @spec send_customer_chat(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def send_customer_chat(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.send_customer_chat(), variables),
-         :ok <- check_mutation_error(data["sendCustomerChat"]["error"]) do
-      {:ok, data["sendCustomerChat"]["chat"]}
-    end
+    run_mutation(
+      client,
+      Operations.send_customer_chat(),
+      wrap_input(input),
+      "sendCustomerChat",
+      & &1["chat"]
+    )
   end
 
   @doc """
@@ -255,12 +268,9 @@ defmodule ExPlain.Threads do
   """
   @spec send_email(Client.t(), map()) :: {:ok, :sent} | {:error, Error.t()}
   def send_email(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.send_new_email(), variables),
-         :ok <- check_mutation_error(data["sendNewEmail"]["error"]) do
-      {:ok, :sent}
-    end
+    run_mutation(client, Operations.send_new_email(), wrap_input(input), "sendNewEmail", fn _ ->
+      :sent
+    end)
   end
 
   @doc """
@@ -270,12 +280,9 @@ defmodule ExPlain.Threads do
   """
   @spec reply_to_email(Client.t(), map()) :: {:ok, :sent} | {:error, Error.t()}
   def reply_to_email(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.reply_to_email(), variables),
-         :ok <- check_mutation_error(data["replyToEmail"]["error"]) do
-      {:ok, :sent}
-    end
+    run_mutation(client, Operations.reply_to_email(), wrap_input(input), "replyToEmail", fn _ ->
+      :sent
+    end)
   end
 
   @doc """
@@ -285,12 +292,7 @@ defmodule ExPlain.Threads do
   """
   @spec create_note(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def create_note(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.create_note(), variables),
-         :ok <- check_mutation_error(data["createNote"]["error"]) do
-      {:ok, data["createNote"]["note"]}
-    end
+    run_mutation(client, Operations.create_note(), wrap_input(input), "createNote", & &1["note"])
   end
 
   @doc """
@@ -305,11 +307,9 @@ defmodule ExPlain.Threads do
   def add_labels(client, thread_id, label_type_ids) do
     variables = %{input: %{threadId: thread_id, labelTypeIds: label_type_ids}}
 
-    with {:ok, data} <- Client.execute(client, Operations.add_labels(), variables),
-         :ok <- check_mutation_error(data["addLabels"]["error"]) do
-      labels = Enum.map(data["addLabels"]["labels"] || [], &Label.from_map/1)
-      {:ok, labels}
-    end
+    run_mutation(client, Operations.add_labels(), variables, "addLabels", fn p ->
+      Enum.map(p["labels"] || [], &Label.from_map/1)
+    end)
   end
 
   @doc """
@@ -323,10 +323,9 @@ defmodule ExPlain.Threads do
   def remove_labels(client, label_ids) do
     variables = %{input: %{labelIds: label_ids}}
 
-    with {:ok, data} <- Client.execute(client, Operations.remove_labels(), variables),
-         :ok <- check_mutation_error(data["removeLabels"]["error"]) do
-      {:ok, :removed}
-    end
+    run_mutation(client, Operations.remove_labels(), variables, "removeLabels", fn _ ->
+      :removed
+    end)
   end
 
   @doc """
@@ -337,12 +336,13 @@ defmodule ExPlain.Threads do
   """
   @spec upsert_field(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def upsert_field(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.upsert_thread_field(), variables),
-         :ok <- check_mutation_error(data["upsertThreadField"]["error"]) do
-      {:ok, data["upsertThreadField"]["threadField"]}
-    end
+    run_mutation(
+      client,
+      Operations.upsert_thread_field(),
+      wrap_input(input),
+      "upsertThreadField",
+      & &1["threadField"]
+    )
   end
 
   @doc "Deletes a custom thread field."
@@ -350,9 +350,8 @@ defmodule ExPlain.Threads do
   def delete_field(client, thread_field_id) do
     variables = %{input: %{threadFieldId: thread_field_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.delete_thread_field(), variables),
-         :ok <- check_mutation_error(data["deleteThreadField"]["error"]) do
-      {:ok, :deleted}
-    end
+    run_mutation(client, Operations.delete_thread_field(), variables, "deleteThreadField", fn _ ->
+      :deleted
+    end)
   end
 end

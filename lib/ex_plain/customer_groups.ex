@@ -4,7 +4,7 @@ defmodule ExPlain.CustomerGroups do
   alias ExPlain.{Client, Error, Operations, PageInfo}
   alias ExPlain.CustomerGroups.CustomerGroup
 
-  import ExPlain.Util, only: [build_pagination_vars: 1]
+  import ExPlain.Util, only: [build_pagination_vars: 1, fetch_one: 5, list_connection: 5]
 
   @doc """
   Returns a paginated list of customer groups.
@@ -18,15 +18,13 @@ defmodule ExPlain.CustomerGroups do
   def list(client, opts \\ []) do
     variables = build_pagination_vars(opts)
 
-    with {:ok, data} <- Client.execute(client, Operations.customer_groups(), variables) do
-      conn = data["customerGroups"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> CustomerGroup.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(
+      client,
+      Operations.customer_groups(),
+      variables,
+      "customerGroups",
+      &CustomerGroup.from_map/1
+    )
   end
 
   @doc """
@@ -36,11 +34,12 @@ defmodule ExPlain.CustomerGroups do
   @spec get_by_id(Client.t(), String.t()) ::
           {:ok, CustomerGroup.t() | nil} | {:error, Error.t()}
   def get_by_id(client, customer_group_id) do
-    with {:ok, data} <-
-           Client.execute(client, Operations.customer_group_by_id(), %{
-             customerGroupId: customer_group_id
-           }) do
-      {:ok, CustomerGroup.from_map(data["customerGroup"])}
-    end
+    fetch_one(
+      client,
+      Operations.customer_group_by_id(),
+      %{customerGroupId: customer_group_id},
+      "customerGroup",
+      &CustomerGroup.from_map/1
+    )
   end
 end

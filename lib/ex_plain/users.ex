@@ -4,15 +4,15 @@ defmodule ExPlain.Users do
   alias ExPlain.{Client, Error, Operations}
   alias ExPlain.Users.User
 
+  import ExPlain.Util, only: [fetch_one: 5]
+
   @doc """
   Fetches a workspace user by their Plain user ID.
   Returns `{:ok, nil}` if not found.
   """
   @spec get_by_id(Client.t(), String.t()) :: {:ok, User.t() | nil} | {:error, Error.t()}
   def get_by_id(client, user_id) do
-    with {:ok, data} <- Client.execute(client, Operations.user_by_id(), %{userId: user_id}) do
-      {:ok, User.from_map(data["userById"])}
-    end
+    fetch_one(client, Operations.user_by_id(), %{userId: user_id}, "userById", &User.from_map/1)
   end
 
   @doc """
@@ -21,8 +21,12 @@ defmodule ExPlain.Users do
   """
   @spec get_by_email(Client.t(), String.t()) :: {:ok, User.t() | nil} | {:error, Error.t()}
   def get_by_email(client, email) do
-    with {:ok, data} <- Client.execute(client, Operations.user_by_email(), %{email: email}) do
-      {:ok, User.from_map(data["userByEmail"])}
-    end
+    fetch_one(
+      client,
+      Operations.user_by_email(),
+      %{email: email},
+      "userByEmail",
+      &User.from_map/1
+    )
   end
 end

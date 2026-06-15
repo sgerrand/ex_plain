@@ -5,7 +5,13 @@ defmodule ExPlain.Companies do
   alias ExPlain.Companies.Company
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, camelize_keys: 1, wrap_input: 1]
+    only: [
+      build_pagination_vars: 1,
+      camelize_keys: 1,
+      wrap_input: 1,
+      list_connection: 5,
+      run_mutation: 5
+    ]
 
   @doc """
   Returns a paginated list of companies.
@@ -19,15 +25,7 @@ defmodule ExPlain.Companies do
   def list(client, opts \\ []) do
     variables = build_pagination_vars(opts)
 
-    with {:ok, data} <- Client.execute(client, Operations.companies(), variables) do
-      conn = data["companies"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> Company.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(client, Operations.companies(), variables, "companies", &Company.from_map/1)
   end
 
   @doc """
@@ -40,15 +38,15 @@ defmodule ExPlain.Companies do
   def search(client, search_query, opts \\ []) do
     variables = build_pagination_vars(opts) |> Map.put(:searchQuery, camelize_keys(search_query))
 
-    with {:ok, data} <- Client.execute(client, Operations.search_companies(), variables) do
-      conn = data["searchCompanies"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> Company.from_map(e["node"]["company"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(
+      client,
+      Operations.search_companies(),
+      variables,
+      "searchCompanies",
+      fn node ->
+        Company.from_map(node["company"])
+      end
+    )
   end
 
   @doc """
@@ -59,12 +57,13 @@ defmodule ExPlain.Companies do
   """
   @spec upsert(Client.t(), map()) :: {:ok, Company.t()} | {:error, Error.t()}
   def upsert(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.upsert_company(), variables),
-         :ok <- check_mutation_error(data["upsertCompany"]["error"]) do
-      {:ok, Company.from_map(data["upsertCompany"]["company"])}
-    end
+    run_mutation(
+      client,
+      Operations.upsert_company(),
+      wrap_input(input),
+      "upsertCompany",
+      &Company.from_map(&1["company"])
+    )
   end
 
   @doc """
@@ -74,11 +73,12 @@ defmodule ExPlain.Companies do
   """
   @spec update_tier(Client.t(), map()) :: {:ok, map()} | {:error, Error.t()}
   def update_tier(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.update_company_tier(), variables),
-         :ok <- check_mutation_error(data["updateCompanyTier"]["error"]) do
-      {:ok, data["updateCompanyTier"]["companyTierMembership"]}
-    end
+    run_mutation(
+      client,
+      Operations.update_company_tier(),
+      wrap_input(input),
+      "updateCompanyTier",
+      & &1["companyTierMembership"]
+    )
   end
 end

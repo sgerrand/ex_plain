@@ -5,7 +5,13 @@ defmodule ExPlain.Tiers do
   alias ExPlain.Tiers.Tier
 
   import ExPlain.Util,
-    only: [check_mutation_error: 1, build_pagination_vars: 1, wrap_input: 1]
+    only: [
+      build_pagination_vars: 1,
+      wrap_input: 1,
+      fetch_one: 5,
+      list_connection: 5,
+      run_mutation: 5
+    ]
 
   @doc "Returns a paginated list of tiers."
   @spec list(Client.t(), keyword()) ::
@@ -13,15 +19,7 @@ defmodule ExPlain.Tiers do
   def list(client, opts \\ []) do
     variables = build_pagination_vars(opts)
 
-    with {:ok, data} <- Client.execute(client, Operations.tiers(), variables) do
-      conn = data["tiers"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> Tier.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"])
-       }}
-    end
+    list_connection(client, Operations.tiers(), variables, "tiers", &Tier.from_map/1)
   end
 
   @doc """
@@ -30,9 +28,7 @@ defmodule ExPlain.Tiers do
   """
   @spec get_by_id(Client.t(), String.t()) :: {:ok, Tier.t() | nil} | {:error, Error.t()}
   def get_by_id(client, tier_id) do
-    with {:ok, data} <- Client.execute(client, Operations.tier_by_id(), %{tierId: tier_id}) do
-      {:ok, Tier.from_map(data["tier"])}
-    end
+    fetch_one(client, Operations.tier_by_id(), %{tierId: tier_id}, "tier", &Tier.from_map/1)
   end
 
   @doc """
@@ -42,12 +38,13 @@ defmodule ExPlain.Tiers do
   """
   @spec add_members(Client.t(), map()) :: {:ok, list()} | {:error, Error.t()}
   def add_members(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.add_members_to_tier(), variables),
-         :ok <- check_mutation_error(data["addMembersToTier"]["error"]) do
-      {:ok, data["addMembersToTier"]["memberships"] || []}
-    end
+    run_mutation(
+      client,
+      Operations.add_members_to_tier(),
+      wrap_input(input),
+      "addMembersToTier",
+      &(&1["memberships"] || [])
+    )
   end
 
   @doc """
@@ -57,11 +54,12 @@ defmodule ExPlain.Tiers do
   """
   @spec remove_members(Client.t(), map()) :: {:ok, :removed} | {:error, Error.t()}
   def remove_members(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.remove_members_from_tier(), variables),
-         :ok <- check_mutation_error(data["removeMembersFromTier"]["error"]) do
-      {:ok, :removed}
-    end
+    run_mutation(
+      client,
+      Operations.remove_members_from_tier(),
+      wrap_input(input),
+      "removeMembersFromTier",
+      fn _ -> :removed end
+    )
   end
 end

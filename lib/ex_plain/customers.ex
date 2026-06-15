@@ -6,10 +6,12 @@ defmodule ExPlain.Customers do
 
   import ExPlain.Util,
     only: [
-      check_mutation_error: 1,
       build_pagination_vars: 1,
       wrap_input: 1,
-      put_if_set: 3
+      put_if_set: 3,
+      fetch_one: 5,
+      list_connection: 6,
+      run_mutation: 5
     ]
 
   @doc """
@@ -36,16 +38,9 @@ defmodule ExPlain.Customers do
       |> put_if_set(:filters, opts[:filters])
       |> put_if_set(:sortBy, opts[:sort_by])
 
-    with {:ok, data} <- Client.execute(client, Operations.customers(), variables) do
-      conn = data["customers"]
-
-      {:ok,
-       %{
-         nodes: Enum.map(conn["edges"], fn e -> Customer.from_map(e["node"]) end),
-         page_info: PageInfo.from_map(conn["pageInfo"]),
-         total_count: conn["totalCount"]
-       }}
-    end
+    list_connection(client, Operations.customers(), variables, "customers", &Customer.from_map/1,
+      total_count: true
+    )
   end
 
   @doc """
@@ -54,10 +49,13 @@ defmodule ExPlain.Customers do
   """
   @spec get_by_id(Client.t(), String.t()) :: {:ok, Customer.t() | nil} | {:error, Error.t()}
   def get_by_id(client, customer_id) do
-    with {:ok, data} <-
-           Client.execute(client, Operations.customer_by_id(), %{customerId: customer_id}) do
-      {:ok, Customer.from_map(data["customer"])}
-    end
+    fetch_one(
+      client,
+      Operations.customer_by_id(),
+      %{customerId: customer_id},
+      "customer",
+      &Customer.from_map/1
+    )
   end
 
   @doc """
@@ -66,9 +64,13 @@ defmodule ExPlain.Customers do
   """
   @spec get_by_email(Client.t(), String.t()) :: {:ok, Customer.t() | nil} | {:error, Error.t()}
   def get_by_email(client, email) do
-    with {:ok, data} <- Client.execute(client, Operations.customer_by_email(), %{email: email}) do
-      {:ok, Customer.from_map(data["customerByEmail"])}
-    end
+    fetch_one(
+      client,
+      Operations.customer_by_email(),
+      %{email: email},
+      "customerByEmail",
+      &Customer.from_map/1
+    )
   end
 
   @doc """
@@ -78,10 +80,13 @@ defmodule ExPlain.Customers do
   @spec get_by_external_id(Client.t(), String.t()) ::
           {:ok, Customer.t() | nil} | {:error, Error.t()}
   def get_by_external_id(client, external_id) do
-    with {:ok, data} <-
-           Client.execute(client, Operations.customer_by_external_id(), %{externalId: external_id}) do
-      {:ok, Customer.from_map(data["customerByExternalId"])}
-    end
+    fetch_one(
+      client,
+      Operations.customer_by_external_id(),
+      %{externalId: external_id},
+      "customerByExternalId",
+      &Customer.from_map/1
+    )
   end
 
   @doc """
@@ -105,14 +110,15 @@ defmodule ExPlain.Customers do
   @spec upsert(Client.t(), map()) ::
           {:ok, %{result: :created | :updated, customer: Customer.t()}} | {:error, Error.t()}
   def upsert(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.upsert_customer(), variables),
-         :ok <- check_mutation_error(data["upsertCustomer"]["error"]) do
-      result = decode_upsert_result(data["upsertCustomer"]["result"])
-      customer = Customer.from_map(data["upsertCustomer"]["customer"])
-      {:ok, %{result: result, customer: customer}}
-    end
+    run_mutation(
+      client,
+      Operations.upsert_customer(),
+      wrap_input(input),
+      "upsertCustomer",
+      fn p ->
+        %{result: decode_upsert_result(p["result"]), customer: Customer.from_map(p["customer"])}
+      end
+    )
   end
 
   @doc """
@@ -122,10 +128,9 @@ defmodule ExPlain.Customers do
   def delete(client, customer_id) do
     variables = %{input: %{customerId: customer_id}}
 
-    with {:ok, data} <- Client.execute(client, Operations.delete_customer(), variables),
-         :ok <- check_mutation_error(data["deleteCustomer"]["error"]) do
-      {:ok, :deleted}
-    end
+    run_mutation(client, Operations.delete_customer(), variables, "deleteCustomer", fn _ ->
+      :deleted
+    end)
   end
 
   @doc """
@@ -143,12 +148,13 @@ defmodule ExPlain.Customers do
   """
   @spec update_company(Client.t(), map()) :: {:ok, Customer.t()} | {:error, Error.t()}
   def update_company(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <- Client.execute(client, Operations.update_customer_company(), variables),
-         :ok <- check_mutation_error(data["updateCustomerCompany"]["error"]) do
-      {:ok, Customer.from_map(data["updateCustomerCompany"]["customer"])}
-    end
+    run_mutation(
+      client,
+      Operations.update_customer_company(),
+      wrap_input(input),
+      "updateCustomerCompany",
+      &Customer.from_map(&1["customer"])
+    )
   end
 
   @doc """
@@ -163,14 +169,13 @@ defmodule ExPlain.Customers do
   """
   @spec add_to_customer_groups(Client.t(), map()) :: {:ok, list()} | {:error, Error.t()}
   def add_to_customer_groups(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <-
-           Client.execute(client, Operations.add_customer_to_customer_groups(), variables),
-         :ok <- check_mutation_error(data["addCustomerToCustomerGroups"]["error"]) do
-      memberships = data["addCustomerToCustomerGroups"]["customerGroupMemberships"] || []
-      {:ok, memberships}
-    end
+    run_mutation(
+      client,
+      Operations.add_customer_to_customer_groups(),
+      wrap_input(input),
+      "addCustomerToCustomerGroups",
+      &(&1["customerGroupMemberships"] || [])
+    )
   end
 
   @doc """
@@ -185,13 +190,13 @@ defmodule ExPlain.Customers do
   """
   @spec remove_from_customer_groups(Client.t(), map()) :: {:ok, :removed} | {:error, Error.t()}
   def remove_from_customer_groups(client, input) do
-    variables = wrap_input(input)
-
-    with {:ok, data} <-
-           Client.execute(client, Operations.remove_customer_from_customer_groups(), variables),
-         :ok <- check_mutation_error(data["removeCustomerFromCustomerGroups"]["error"]) do
-      {:ok, :removed}
-    end
+    run_mutation(
+      client,
+      Operations.remove_customer_from_customer_groups(),
+      wrap_input(input),
+      "removeCustomerFromCustomerGroups",
+      fn _ -> :removed end
+    )
   end
 
   # ---------------------------------------------------------------------------
