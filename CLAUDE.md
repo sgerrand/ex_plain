@@ -38,7 +38,7 @@ Elixir 1.19.4-otp-28 / Erlang 28.4 (via `.tool-versions`).
 
 ### Domain modules
 
-Eight domain modules, each following the same pattern:
+Ten domain modules, each following the same pattern:
 
 | Module | Struct |
 | ------ | ------ |
@@ -50,13 +50,14 @@ Eight domain modules, each following the same pattern:
 | `ExPlain.Labels` | `ExPlain.Labels.LabelType`, `ExPlain.Labels.Label` |
 | `ExPlain.Events` | `ExPlain.Events.CustomerEvent`, `ExPlain.Events.ThreadEvent` |
 | `ExPlain.Users` | `ExPlain.Users.User` |
-| `ExPlain.Webhooks` | raw maps (no struct yet) |
+| `ExPlain.CustomerGroups` | `ExPlain.CustomerGroups.CustomerGroup` |
+| `ExPlain.Webhooks` | `ExPlain.Webhooks.WebhookTarget` |
 
 All return `{:ok, result} | {:error, %ExPlain.Error{}}`.
 
 ### Shared utilities
 
-- `ExPlain.Util` — `camelize_keys/1` (snake_case → camelCase for GraphQL variables), `build_pagination_vars/1`, `check_mutation_error/1`, `put_if_set/3`.
+- `ExPlain.Util` — `camelize_keys/1` (snake_case → camelCase for GraphQL variables), `build_pagination_vars/1`, `check_mutation_error/1`, `put_if_set/3`, `wrap_input/1`, plus the shared request helpers `fetch_one/5` (single-entity get), `list_connection/6` (paginated list/search), and `run_mutation/5` (mutation + error check). Domain functions should call these rather than hand-rolling the `Client.execute` boilerplate.
 - `ExPlain.Actor` — decodes GraphQL union `Actor` (UserActor | CustomerActor | SystemActor | MachineUserActor | DeletedCustomerActor).
 - `ExPlain.PageInfo`, `ExPlain.DateTime`, `ExPlain.Error` — shared types.
 - `ExPlain.Components` — builders for `ComponentInput` maps used in thread/event mutations.
