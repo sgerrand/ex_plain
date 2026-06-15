@@ -43,7 +43,7 @@ defmodule ExPlain.Customers.Customer do
       short_name: m["shortName"],
       external_id: m["externalId"],
       email: decode_email(m["email"]),
-      company: decode_company(m["company"]),
+      company: Company.from_map(m["company"]),
       created_at: DateTime.from_map(m["createdAt"]),
       created_by: Actor.from_map(m["createdBy"]),
       updated_at: DateTime.from_map(m["updatedAt"]),
@@ -60,7 +60,4 @@ defmodule ExPlain.Customers.Customer do
       verified_at: DateTime.from_map(e["verifiedAt"])
     }
   end
-
-  defp decode_company(nil), do: nil
-  defp decode_company(c), do: Company.from_map(c)
 end
