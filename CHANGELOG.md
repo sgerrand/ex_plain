@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4](https://github.com/sgerrand/ex_plain/compare/v0.3.3...v0.3.4) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** bump req from 0.7.4 to 0.7.5 ([#40](https://github.com/sgerrand/ex_plain/issues/40)) ([792eac7](https://github.com/sgerrand/ex_plain/commit/792eac7522f4a841726636d34ac82db6c4a1debd))
+
 ## [0.3.3](https://github.com/sgerrand/ex_plain/compare/v0.3.2...v0.3.3) (2026-09-14)
 
 
