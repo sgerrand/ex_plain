@@ -13,9 +13,17 @@ jobs:
   required:
     name: Required
     needs: [docs, lint-markdown, test]
+    # Run even when a needed job fails. A skipped job counts as passing for
+    # required status checks, so this job must fail instead of being skipped.
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
+      - name: Fail if any workflow job did not succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo 'One or more jobs in this workflow failed or were cancelled'
+          exit 1
       - name: Status of workflow jobs
         run: echo 'All jobs in this workflow have successfully run'
 
