@@ -2,7 +2,7 @@ defmodule ExPlain.MixProject do
   use Mix.Project
 
   @repo_url "https://github.com/sgerrand/ex_plain"
-  @version "0.3.4"
+  @version "0.3.5"
 
   def project do
     [
