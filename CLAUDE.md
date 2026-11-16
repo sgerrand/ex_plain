@@ -20,7 +20,7 @@ mix format --check-formatted   # Format check (used in CI)
 mix docs               # Generate ExDoc
 ```
 
-Elixir 1.19.4-otp-28 / Erlang 28.4 (via `.tool-versions`).
+Elixir 1.20.1-otp-29 / Erlang 29.0.2 (via `.tool-versions`).
 
 ## Architecture
 
