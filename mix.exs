@@ -42,7 +42,7 @@ defmodule ExPlain.MixProject do
 
   defp deps do
     [
-      {:req, "~> 0.5"},
+      {:req, "~> 0.6 and >= 0.6.1"},
       {:excoveralls, "~> 0.18", only: :test},
       {:plug, "~> 1.0", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
