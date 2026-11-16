@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `ex_plain` is an Elixir client library for the [Plain GraphQL API](https://www.plain.com/docs/graphql/introduction).
 
-Dependency: `{:req, "~> 0.5"}` (pulls in `jason` and `finch` transitively). Test-only: `{:plug, "~> 1.0"}` (needed for `Req.Test`).
+Dependency: `{:req, "~> 0.6 and >= 0.6.1"}` (pulls in `jason` and `finch` transitively). Test-only: `{:plug, "~> 1.0"}` (needed for `Req.Test`).
 
 ## Commands
 

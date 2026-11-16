@@ -12,7 +12,7 @@ permissions:
 jobs:
   required:
     name: Required
-    needs: [docs, lint, lint-markdown, test]
+    needs: [docs, lint, lint-markdown, test, test-oldest-req]
     # Run even when a needed job fails. A skipped job counts as passing for
     # required status checks, so this job must fail instead of being skipped.
     if: always()
@@ -199,6 +199,43 @@ jobs:
         restore-keys: ${{ runner.os }}-mix-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
     - name: Install and compile dependencies
       if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        # shellcheck disable=SC1010
+        mix do deps.get, deps.compile
+    - name: Compile code
+      run: mix compile --warnings-as-errors
+    - name: Run tests
+      run: mix test --warnings-as-errors
+
+  test-oldest-req:
+    name: Tests (oldest Req)
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+      # The oldest Req version that mix.exs allows. Keep this in step with the
+      # lower bound of the req requirement in mix.exs.
+      REQ_VERSION: '0.6.1'
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Set up Elixir
+      uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+      with:
+        # The oldest pair in the test matrix.
+        elixir-version: '1.17'
+        otp-version: '26'
+    - name: Pin Req to the oldest allowed version
+      run: |
+        if ! grep -qF ">= ${REQ_VERSION}\"}" mix.exs; then
+          echo "::error::REQ_VERSION (${REQ_VERSION}) does not match the lower bound of req in mix.exs"
+          exit 1
+        fi
+        sed -i "s/{:req, \"[^\"]*\"}/{:req, \"== ${REQ_VERSION}\"}/" mix.exs
+        grep -F "{:req, \"== ${REQ_VERSION}\"}" mix.exs
+    - name: Install and compile dependencies
       run: |
         # shellcheck disable=SC1010
         mix do deps.get, deps.compile
